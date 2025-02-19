@@ -42,3 +42,5 @@ export const databaseConfig: TypeOrmModuleOptions = {
   logging: true,
   connectTimeout: 30000, // Increased timeout for AWS RDS connection
 };
+
+//lets commmit
