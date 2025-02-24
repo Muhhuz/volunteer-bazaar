@@ -1,22 +1,29 @@
-import { Body, Controller, Get, Param, Put, Query, UseInterceptors } from "@nestjs/common";
-import { UserQueryDto } from "../dto/user-query.dto";
-import { ApiOperation } from "@nestjs/swagger";
-import { UserService } from "src/services/user.service";
-import { UpdateUserDto } from "src/dto/update-user.dto";
-import { TransformInterceptor } from "src/interceptors/transform.interceptor";
+import { Body, Controller, Get, Param, Put, Query, UseInterceptors } from '@nestjs/common';
+import { UserService } from 'src/services/user.service';
+import { EventService } from 'src/services/event.service';
+import { TransformInterceptor } from 'src/interceptors/transform.interceptor';
+import { ApiOperation } from '@nestjs/swagger';
+import { UserQueryDto } from 'src/dto/user-query.dto';
+import { UpdateUserDto } from 'src/dto/update-user.dto';
 
-// src/controllers/user.controller.ts
 @Controller('users')
 @UseInterceptors(TransformInterceptor)
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly eventService: EventService, // Inject EventService
+  ) {}
 
-@Get()
-@ApiOperation({ summary: 'Get all users' })
-getUsers(@Query() query: UserQueryDto) {
-  return this.userService.findAll(query); // Pass the query from the URL (e.g., search/filter pagination)
-}
-
+  @Get(':userId/events')
+  @ApiOperation({ summary: 'Get events of a user by user ID' })
+  async getUserEvents(@Param('userId') userId: number) {
+    try {
+      const events = await this.eventService.getUserEvents(userId); // Fetch events for the user
+      return events;
+    } catch (error) {
+      throw new Error('Error fetching user events: ' + error.message);
+    }
+  }
 
   @Get('stats/:id')
   @ApiOperation({ summary: 'Get user statistics' })

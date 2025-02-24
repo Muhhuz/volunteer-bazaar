@@ -56,8 +56,23 @@ export class EventController {
 @Get('/search')
 @ApiOperation({ summary: 'Search events by keyword or filters' })
 searchEvents(@Query() searchQuery: EventSearchDto) {
+  // Ensure page and limit are integers and fallback to defaults if undefined
+  const pageNumber = searchQuery.page ? parseInt(searchQuery.page.toString(), 10) : 1;
+  const limitNumber = searchQuery.limit ? parseInt(searchQuery.limit.toString(), 10) : 10; // Cap limit at 100
+
+  // Validate the parsed integers
+  if (isNaN(pageNumber) || pageNumber < 1 || isNaN(limitNumber) || limitNumber < 1) {
+    throw new BadRequestException('Page and limit must be valid positive integers.');
+  }
+
+  // Assign parsed values back to the searchQuery object
+  searchQuery.page = pageNumber;
+  searchQuery.limit = limitNumber;
+
   return this.eventService.searchEvents(searchQuery);
 }
+
+
 
 
 @Get(':id')

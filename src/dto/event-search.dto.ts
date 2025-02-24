@@ -1,27 +1,27 @@
-import { IsOptional, IsString, IsNumber, IsDateString } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsInt } from 'class-validator';
 
 export class EventSearchDto {
   @IsOptional()
   @IsString()
-  keyword?: string; // Search keyword for name or description
+  keyword?: string;
 
   @IsOptional()
   @IsNumber()
-  eventTypeId?: number; // Filter by event type
+  eventTypeId?: number;
 
   @IsOptional()
-  @IsDateString()
-  startDate?: string; // Filter by event start date
+  @IsString()
+  startDate?: string;
 
   @IsOptional()
-  @IsDateString()
-  endDate?: string; // Filter by event end date
+  @IsString()
+  endDate?: string;
 
   @IsOptional()
-  @IsNumber()
-  page?: number; // Pagination: page number
+  @IsInt()
+  page?: number; // Ensure this is an integer
 
   @IsOptional()
-  @IsNumber()
-  limit?: number; // Pagination: number of items per page
+  @IsInt()
+  limit?: number; // Ensure this is an integer
 }
