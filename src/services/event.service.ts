@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from '../entities/event.entity';
 import { UserEvent } from '../entities/user-event.entity';
 import { MoreThan } from 'typeorm';
+import { EventSearchDto } from 'src/dto/event-search.dto';
 
 @Injectable()
 export class EventService {
@@ -102,4 +103,48 @@ export class EventService {
   async remove(id: number) {
     return await this.eventRepository.delete(id);
   }
+
+  // Search events based on the search query parameters
+  async searchEvents(searchQuery: EventSearchDto) {
+    const queryBuilder = this.eventRepository.createQueryBuilder('event');
+
+    // Add filters based on the searchQuery fields
+    if (searchQuery.keyword) {
+      queryBuilder.andWhere('event.name LIKE :keyword OR event.description LIKE :keyword', {
+        keyword: `%${searchQuery.keyword}%`,
+      });
+    }
+
+    if (searchQuery.eventTypeId) {
+      queryBuilder.andWhere('event.event_type_id = :eventTypeId', {
+        eventTypeId: searchQuery.eventTypeId,
+      });
+    }
+
+    if (searchQuery.startDate) {
+      queryBuilder.andWhere('event.start_date >= :startDate', {
+        startDate: searchQuery.startDate,
+      });
+    }
+
+    if (searchQuery.endDate) {
+      queryBuilder.andWhere('event.end_date <= :endDate', {
+        endDate: searchQuery.endDate,
+      });
+    }
+
+    // Add pagination
+    if (searchQuery.page && searchQuery.limit) {
+      const page = Number(searchQuery.page) || 1;
+      const limit = Number(searchQuery.limit) || 10;
+      queryBuilder.skip((page - 1) * limit).take(limit);
+    }
+
+    try {
+      return await queryBuilder.getMany();
+    } catch (error) {
+      throw new Error('Error searching events: ' + error.message);
+    }
+  }
+
 }

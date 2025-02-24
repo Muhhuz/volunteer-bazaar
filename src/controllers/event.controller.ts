@@ -1,11 +1,17 @@
 import { 
-  Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put, Query 
+  BadRequestException,
+  Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put, Query, 
+  UseInterceptors
 } from '@nestjs/common';
 import { createEventDto } from '../dto/create-event.dto';
 import { updateEventDto } from 'src/dto/update-event.dto';
 import { EventService } from '../services/event.service';
+import { ApiOperation } from '@nestjs/swagger';
+import { EventSearchDto } from 'src/dto/event-search.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('events')
+@UseInterceptors(CacheInterceptor) // Add cache interceptor for caching responses
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
@@ -22,7 +28,7 @@ export class EventController {
   }
   
   @Get('/upcoming')
-async getUpcomingEvents() {
+  async getUpcomingEvents() {
   try {
     console.log("Fetching upcoming events...");
     const events = await this.eventService.getUpcomingEvents();
@@ -34,8 +40,8 @@ async getUpcomingEvents() {
   }
 }
 
-@Get('/popular')
-async getPopularEvents() {
+  @Get('/popular')
+  async getPopularEvents() {
   try {
     console.log("Fetching popular events...");
     const events = await this.eventService.getPopularEvents();
@@ -47,21 +53,30 @@ async getPopularEvents() {
   }
 }
 
-  @Get(':id')
+@Get('/search')
+@ApiOperation({ summary: 'Search events by keyword or filters' })
+searchEvents(@Query() searchQuery: EventSearchDto) {
+  return this.eventService.searchEvents(searchQuery);
+}
+
+
+@Get(':id')
 async findOne(@Param('id') id: string) {
   return this.eventService.findOne(id);
 }
-@Get()
-async findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
-  const pageNumber = Number(page) || 1;
-  const limitNumber = Number(limit) || 10;
 
-  if (isNaN(pageNumber) || isNaN(limitNumber)) {
-    throw new Error('Page and limit must be valid numbers.');
+@Get()
+async findAll(@Query('page') page: string, @Query('limit') limit: string) {
+  const pageNumber = Number(page) || 1;
+  const limitNumber = Math.min(Number(limit) || 10, 100); // Cap at 100 for large requests
+
+  if (isNaN(pageNumber) || pageNumber < 1 || limitNumber < 1) {
+    throw new BadRequestException('Page and limit must be valid positive numbers.');
   }
 
-  return await this.eventService.findAll({ page: pageNumber, limit: limitNumber });
+  return this.eventService.findAll({ page: pageNumber, limit: limitNumber });
 }
+
 
   @Post()
   create(@Body() createEventDto: createEventDto) {

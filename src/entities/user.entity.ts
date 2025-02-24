@@ -33,17 +33,25 @@ export class User {
   @Column()
   employment_status: string;
 
-  @Column()
-  bio: string;
+  @Column('text', { nullable: true })
+  bio: string | null;
 
-  @Column()
+  @Column('int', { default: 0 })
   reviews_received: number;
 
-  @Column()
+  @Column('int', { default: 0 })
   referral_count: number;
 
-  @Column()
+  @Column('int', { default: 0 })
   hours_completed: number;
+
+  // New email column
+  @Column({ type: 'varchar', length: 255, unique: true })
+  email: string;
+
+  // New password column (hashed)
+  @Column({ type: 'varchar', length: 255 })
+  password: string;
 
   // ✅ Corrected Foreign Key Relations
   @ManyToOne(() => City, city => city.users)

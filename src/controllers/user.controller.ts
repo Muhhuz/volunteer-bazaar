@@ -1,9 +1,9 @@
-import { Controller, Get, Param, Query, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Put, Query, UseInterceptors } from "@nestjs/common";
 import { UserQueryDto } from "../dto/user-query.dto";
-
 import { ApiOperation } from "@nestjs/swagger";
-import { TransformInterceptor } from "src/interceptors/transform.interceptor";
 import { UserService } from "src/services/user.service";
+import { UpdateUserDto } from "src/dto/update-user.dto";
+import { TransformInterceptor } from "src/interceptors/transform.interceptor";
 
 // src/controllers/user.controller.ts
 @Controller('users')
@@ -11,11 +11,11 @@ import { UserService } from "src/services/user.service";
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  @ApiOperation({ summary: 'Get all users' })
-  getUsers() {
-    return this.userService.findAll({});
-  }
+@Get()
+@ApiOperation({ summary: 'Get all users' })
+getUsers(@Query() query: UserQueryDto) {
+  return this.userService.findAll(query); // Pass the query from the URL (e.g., search/filter pagination)
+}
 
 
   @Get('stats/:id')
@@ -29,4 +29,11 @@ export class UserController {
   searchUsers(@Query() query: UserQueryDto) {
     return this.userService.findAll(query);
   }
+
+  @Put('profile/:id')
+  @ApiOperation({ summary: 'Update user profile' })
+  updateProfile(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.updateProfile(id, updateUserDto);
+}
+
 }
