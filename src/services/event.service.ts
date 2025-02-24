@@ -110,7 +110,7 @@ export class EventService {
 
     // Add filters based on the searchQuery fields
     if (searchQuery.keyword) {
-      queryBuilder.andWhere('event.name LIKE :keyword OR event.description LIKE :keyword', {
+      queryBuilder.andWhere('event.title LIKE :keyword OR event.description LIKE :keyword', {
         keyword: `%${searchQuery.keyword}%`,
       });
     }
